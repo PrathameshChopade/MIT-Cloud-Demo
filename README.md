@@ -20,8 +20,8 @@ Most cloud breaches start with mistakes made by the people using the cloud: a pa
    - **Git:** https://git-scm.com/downloads.
 2. **Clone this repo** and open a terminal in its folder:
    ```bash
-   git clone https://github.com/<github-user>/secure-path-to-cloud.git
-   cd secure-path-to-cloud
+   git clone https://github.com/PrathameshChopade/MIT-Cloud-Demo.git
+   cd MIT-Cloud-Demo
    ```
 3. **Build the toolbox once.** This needs about 1.5 GB of disk space and a decent connection:
    ```bash

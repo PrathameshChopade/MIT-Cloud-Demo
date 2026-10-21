@@ -36,8 +36,8 @@ Install one of them and Git, then continue below.
 
 Host terminal:
 ```bash
-git clone https://github.com/<github-user>/secure-path-to-cloud.git
-cd secure-path-to-cloud
+git clone https://github.com/PrathameshChopade/MIT-Cloud-Demo.git
+cd MIT-Cloud-Demo
 docker compose build
 bash verify.sh                     # Windows without WSL: powershell -ExecutionPolicy Bypass -File .\verify.ps1
 # expect: READY

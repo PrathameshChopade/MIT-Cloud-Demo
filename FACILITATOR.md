@@ -178,7 +178,7 @@ docker compose --profile jenkins up -d --build jenkins
 > The session is hands-on, so please set up your laptop before Thursday:
 >
 > 1. Install Git and Docker Desktop (Rancher Desktop, or Docker Engine in WSL2, also work).
-> 2. Clone the lab repo: `git clone https://github.com/<github-user>/secure-path-to-cloud.git`
+> 2. Clone the lab repo: `git clone https://github.com/PrathameshChopade/MIT-Cloud-Demo.git`
 > 3. In the repo folder, run `docker compose build`. This downloads about 1.5 GB, so please do it on a good connection.
 > 4. Run `verify.ps1` (Windows) or `verify.sh` (macOS/Linux/WSL) and check that it says READY.
 >
