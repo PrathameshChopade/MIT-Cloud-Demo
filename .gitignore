@@ -1,0 +1,13 @@
+# Office lock files (created while a deck is open in PowerPoint).
+~$*
+
+# Created while running the labs; never part of the kit.
+.scannerwork/
+labs/lab3-ci-gate/demo-repo/
+
+# Lab 4 Terraform state and downloads: never commit these.
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+customers.csv

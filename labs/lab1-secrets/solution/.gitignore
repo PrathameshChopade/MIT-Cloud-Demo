@@ -1,0 +1,4 @@
+# Local secrets never get committed.
+.env
+*.pem
+*.key

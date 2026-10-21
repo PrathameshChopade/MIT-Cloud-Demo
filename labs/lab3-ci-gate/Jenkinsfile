@@ -1,0 +1,22 @@
+// Security gate: the infrastructure must pass its must-fix checks before
+// anything is deployed. If the check fails, Deploy is skipped.
+//
+// Paste this into the Jenkins job (Definition: "Pipeline script").
+// Jenkins reads the demo repo directly from /lab3/demo-repo (docker-compose
+// mounts labs/lab3-ci-gate at /lab3), so no Git checkout is needed.
+pipeline {
+    agent any
+
+    stages {
+        stage('Terraform security check') {
+            steps {
+                sh 'checkov -d /lab3/demo-repo --config-file /lab3/demo-repo/checkov-baseline.yaml'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                echo 'Security check passed. Deploying (simulated).'
+            }
+        }
+    }
+}

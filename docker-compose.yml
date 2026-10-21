@@ -1,0 +1,68 @@
+# Everything participants need, built once before the session:
+#   docker compose build
+name: secure-path
+
+services:
+  # All scanners used in Labs 1-3. Start a shell with:
+  #   docker compose run --rm toolbox
+  toolbox:
+    build:
+      context: .
+      dockerfile: toolbox/Dockerfile
+    image: secure-path-toolbox:1.0
+    working_dir: /workspace
+    volumes:
+      # The whole repo, so paths inside the toolbox match the repo exactly
+      # (labs/..., scripts/...) and git can reset the lab files afterwards.
+      - .:/workspace
+    stdin_open: true
+    tty: true
+
+  # Lab 3 (facilitator only): local Jenkins for the CI gate demo.
+  #   docker compose --profile jenkins up -d jenkins
+  jenkins:
+    profiles: ["jenkins"]
+    build: ./labs/lab3-ci-gate/jenkins
+    image: secure-path-jenkins:1.0
+    # No login is configured, so bind to localhost only.
+    ports:
+      - "127.0.0.1:8080:8080"
+    environment:
+      JAVA_OPTS: "-Djenkins.install.runSetupWizard=false -Dhudson.plugins.git.GitSCM.ALLOW_LOCAL_CHECKOUT=true"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      # The parent folder, not demo-repo itself: demo-repo is deleted and recreated
+      # between runs, and a mount of a deleted folder keeps showing the old one.
+      - ./labs/lab3-ci-gate:/lab3:ro
+
+  # Lab 2 (facilitator only): SonarQube dashboard demo.
+  #   docker compose --profile sonarqube up -d sonarqube
+  sonarqube:
+    profiles: ["sonarqube"]
+    image: sonarqube:26.9.0.129388-community
+    # No other login than the one you set, so bind to localhost only.
+    ports:
+      - "127.0.0.1:9000:9000"
+    environment:
+      # Skips Elasticsearch's production checks (vm.max_map_count), so no
+      # kernel setting is needed. Fine for a demo, not for a real server.
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+
+  # Sends Lab 2's code to SonarQube for analysis (see FACILITATOR.md).
+  sonar-scanner:
+    profiles: ["sonarqube"]
+    image: sonarsource/sonar-scanner-cli:12.2.0.4256_8.1.0
+    environment:
+      SONAR_HOST_URL: http://sonarqube:9000
+    volumes:
+      - ./labs/lab2-insecure-code:/usr/src
+
+volumes:
+  jenkins_home:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:

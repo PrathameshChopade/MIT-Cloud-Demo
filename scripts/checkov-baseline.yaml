@@ -1,0 +1,17 @@
+# The must-pass Terraform checks. A full `checkov -d .` scan reports many more
+# findings; those get tracked and prioritised, but only these block a change.
+framework:
+  - terraform
+compact: true
+quiet: true
+check:
+  - CKV_AWS_24   # No security group allows SSH (22) from 0.0.0.0/0
+  - CKV_AWS_79   # EC2 instance metadata requires IMDSv2 tokens
+  - CKV_AWS_8    # EC2 / EBS volumes are encrypted
+  - CKV_AWS_88   # EC2 instance has no public IP
+  - CKV_AWS_53   # S3 bucket blocks public ACLs
+  - CKV_AWS_54   # S3 bucket blocks public policies
+  - CKV_AWS_55   # S3 bucket ignores public ACLs
+  - CKV_AWS_56   # S3 bucket restricts public buckets
+  - CKV_AWS_62   # No IAM policy grants full "*:*" admin
+  - CKV_AWS_63   # No IAM policy allows "*" as an action
