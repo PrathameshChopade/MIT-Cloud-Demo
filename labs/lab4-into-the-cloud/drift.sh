@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 # Simulates a colleague "quickly fixing something" directly in the AWS account,
-# bypassing the code, the scanners and the pipeline.
+# bypassing the code, the scanners and the pipeline:
+#   1. opens SSH (port 22) to the whole internet
+#   2. removes the bucket's Block Public Access
+#   3. replaces the bucket policy with one that lets ANYONE read its files
 #
-# It does NOT make the bucket public: it only removes the bucket's protection,
-# which is enough to show the drift without exposing anything.
+# After change 3 the demo file is readable by anyone with the link. It holds
+# fake data only. Run `terraform apply` straight after the demo to undo it.
 set -eu
 cd "$(dirname "$0")/terraform"
 
@@ -18,4 +21,22 @@ aws ec2 authorize-security-group-ingress --region "$region" \
 echo "Change 2: removing Block Public Access from bucket $bucket"
 aws s3api delete-public-access-block --region "$region" --bucket "$bucket"
 
-echo "Done. The code is unchanged, so every scanner would still pass."
+echo "Change 3: making every file in $bucket readable by anyone"
+policy=$(printf '{"Version":"2012-10-17","Statement":[{"Sid":"PublicRead","Effect":"Allow","Principal":"*","Action":"s3:GetObject","Resource":"arn:aws:s3:::%s/*"}]}' "$bucket")
+if ! aws s3api put-bucket-policy --region "$region" --bucket "$bucket" --policy "$policy"; then
+  echo >&2
+  echo "AWS refused the public policy: account-level Block Public Access is probably on." >&2
+  echo "That account guardrail just stopped the leak. See FACILITATOR.md (Lab 4) for options." >&2
+  exit 1
+fi
+
+url="https://$bucket.s3.$region.amazonaws.com/customers.csv"
+echo
+echo "The file is now public. Anyone with this link can read it:"
+echo
+echo "  $url"
+echo
+if command -v qrencode > /dev/null; then
+  qrencode -t ANSIUTF8 -m 2 "$url"
+fi
+echo "Undo it with: terraform apply   (the same link then returns Access Denied)"

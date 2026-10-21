@@ -128,17 +128,20 @@ cd labs/lab4-into-the-cloud/terraform
 terraform init && terraform plan && terraform apply           # type: yes
 
 bucket=$(terraform output -raw bucket_name); region=$(terraform output -raw region)
-printf 'id,name,email\n1,Asha Rao,asha@example.com\n' > customers.csv
+url="https://$bucket.s3.$region.amazonaws.com/customers.csv"
+printf 'id,name,email,card_last4\n1,Asha Rao,asha@example.com,4242\n2,Ravi Iyer,ravi@example.com,1881\n' > customers.csv
 aws s3 cp customers.csv "s3://$bucket/"
-curl -s -o /dev/null -w "%{http_code}\n" "https://$bucket.s3.$region.amazonaws.com/customers.csv"   # 403
+curl -s -o /dev/null -w "%{http_code}\n" "$url"          # 403
 curl -s "$(aws s3 presign "s3://$bucket/customers.csv" --expires-in 120 --region "$region")"
 
-bash ../check.sh                   # PASS, PASS
-bash ../drift.sh                   # manual changes
-bash ../check.sh                   # FAIL, FAIL
+bash ../check.sh                   # PASS, PASS, PASS
+bash ../drift.sh                   # manual changes; prints the link and a QR code: participants scan it
+curl -s "$url"                     # the fake customer data, readable by anyone
+bash ../check.sh                   # FAIL, FAIL, FAIL
 terraform plan                     # shows the drift
 terraform apply                    # puts it back
-bash ../check.sh                   # PASS, PASS
+bash ../check.sh                   # PASS, PASS, PASS
+curl -s -o /dev/null -w "%{http_code}\n" "$url"          # 403 again: participants refresh their phones
 
 terraform destroy && rm -f customers.csv
 ```

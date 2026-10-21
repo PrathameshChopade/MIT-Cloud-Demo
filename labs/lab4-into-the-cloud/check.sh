@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Two posture checks against the LIVE account, the kind of thing AWS Security
+# Three posture checks against the LIVE account, the kind of thing AWS Security
 # Hub, AWS Config or Prowler run continuously. Exit code 1 if any check fails.
 set -u
 cd "$(dirname "$0")/terraform"
@@ -29,6 +29,16 @@ if [ "$(echo $settings)" = "True True True True" ]; then
 else
   echo "  FAIL  Block Public Access is missing or partly off"
   failed=1
+fi
+
+echo "Check 3: the bucket policy does not make $bucket public"
+public=$(aws s3api get-bucket-policy-status --region "$region" --bucket "$bucket" \
+  --query "PolicyStatus.IsPublic" --output text 2> /dev/null || echo False)
+if [ "$public" = "True" ]; then
+  echo "  FAIL  the bucket policy lets anyone read the files"
+  failed=1
+else
+  echo "  PASS"
 fi
 
 exit "$failed"

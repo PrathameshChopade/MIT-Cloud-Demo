@@ -31,7 +31,7 @@ provider "aws" {
 # --- Storage: a private bucket ------------------------------------------------
 
 resource "aws_s3_bucket" "reports" {
-  bucket_prefix = "secure-path-demo-"
+  bucket_prefix = "spc-demo-" # short, so the link participants open is short too
   force_destroy = true # lets `terraform destroy` remove it even with files inside
 }
 
@@ -57,6 +57,25 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "reports" {
       sse_algorithm = "AES256"
     }
   }
+}
+
+# The bucket's access policy: refuse any request not made over HTTPS.
+# Because Terraform manages it, a manual change (like drift.sh's public policy)
+# shows up in `terraform plan` and is reverted by `terraform apply`.
+resource "aws_s3_bucket_policy" "reports" {
+  bucket = aws_s3_bucket.reports.id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Sid       = "DenyInsecureTransport"
+      Effect    = "Deny"
+      Principal = "*"
+      Action    = "s3:*"
+      Resource  = [aws_s3_bucket.reports.arn, "${aws_s3_bucket.reports.arn}/*"]
+      Condition = { Bool = { "aws:SecureTransport" = "false" } }
+    }]
+  })
+  depends_on = [aws_s3_bucket_public_access_block.reports]
 }
 
 # --- Networking: a security group in the default VPC --------------------------

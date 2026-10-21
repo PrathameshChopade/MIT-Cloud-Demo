@@ -118,8 +118,8 @@ Labs 1–3 run on each participant's own laptop, inside Docker. Lab 4 is a live 
 
 1. A small, secure setup is deployed to a real AWS account with Terraform: a private S3 bucket, a security group allowing HTTPS only, and a least-privilege IAM role.
 2. The bucket is checked from the internet (access denied), and a file is shared safely with a link that expires.
-3. A "colleague" makes two quick manual changes: SSH opened to the world, and the bucket's protection removed. Every scanner still passes.
-4. A live posture check and `terraform plan` both detect the changes, and Terraform puts everything back.
+3. A "colleague" makes quick manual changes: SSH opened to the world, and the bucket made public. Participants scan a QR code and open the leaked "customer data" on their own phones. Every scanner still passes.
+4. A live posture check and `terraform plan` both detect the changes, and Terraform puts everything back. Participants refresh their phones: Access Denied.
 5. The shared responsibility model on what was just built, then everything is removed.
 
 **Why it matters:** the cloud provider secures the platform; how it's configured is always the customer's job, before *and* after deployment.

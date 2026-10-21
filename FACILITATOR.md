@@ -104,7 +104,7 @@ docker compose --profile jenkins up -d --build jenkins
 
 ## Lab 4 AWS demo setup
 
-**What you need:** a sandbox or personal AWS account (never production), with a default VPC in the region you use. The demo creates a bucket, a security group and an IAM role, all free, and removes them at the end.
+**What you need:** a sandbox or personal AWS account (never production), with a default VPC in the region you use. The demo creates a bucket, a security group and an IAM role, all free, briefly makes a file of fake data public, and removes everything at the end.
 
 **Once, in Ubuntu:**
 1. Install Terraform:
@@ -114,9 +114,9 @@ docker compose --profile jenkins up -d --build jenkins
      | sudo tee /etc/apt/sources.list.d/hashicorp.list
    sudo apt-get update && sudo apt-get install -y terraform
    ```
-2. Install the AWS CLI v2:
+2. Install the AWS CLI v2, plus `qrencode` (draws the QR code for the phone-leak step):
    ```bash
-   sudo apt-get install -y unzip
+   sudo apt-get install -y unzip qrencode
    curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o /tmp/awscliv2.zip
    unzip -q /tmp/awscliv2.zip -d /tmp && sudo /tmp/aws/install
    aws --version
@@ -124,7 +124,25 @@ docker compose --profile jenkins up -d --build jenkins
 3. Sign in with **short-lived credentials**: `aws configure sso` if your account uses IAM Identity Center, or `aws login` to reuse your console sign-in. Avoid creating long-lived access keys; if you have to, use a dedicated IAM user for the demo and delete its keys afterwards.
 4. Set a safety net: **Billing → Budgets → Create budget**, a $5 monthly cost budget with an email alert.
 5. The region defaults to `ap-south-1` (Mumbai). To use another one, add `-var region=<region>` to every `terraform plan`, `apply` and `destroy`.
-6. Do a full run of the [Lab 4 README](labs/lab4-into-the-cloud/README.md), including `terraform destroy`, and screen-record it as a backup.
+6. Check the account-level **Block Public Access**. If it's fully on, the phone-leak step is blocked (which is exactly what that guardrail is for):
+   ```bash
+   account=$(aws sts get-caller-identity --query Account --output text)
+   aws s3control get-public-access-block --account-id "$account"
+   # "NoSuchPublicAccessBlockConfiguration" or BlockPublicPolicy/RestrictPublicBuckets false: the leak demo will work
+   ```
+   If it's on, choose one:
+   - **Keep it on** and use it as the lesson: run `drift.sh`, show AWS refusing the public policy, and explain that an account-wide guardrail stopped the leak.
+   - **Switch the two policy settings off for the demo only**, in a sandbox account, and switch them back straight after:
+     ```bash
+     aws s3control put-public-access-block --account-id "$account" --public-access-block-configuration \
+       BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=false,RestrictPublicBuckets=false
+     # after the demo:
+     aws s3control put-public-access-block --account-id "$account" --public-access-block-configuration \
+       BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true
+     ```
+7. Do a full run of the [Lab 4 README](labs/lab4-into-the-cloud/README.md), including `terraform destroy`, and screen-record it as a backup.
+
+**About the phone leak:** between `drift.sh` and `terraform apply`, the fake customer file is readable by anyone with the link. Keep that window to the demo itself, and never put real data in the bucket. Test the QR code with your own phone during the rehearsal: projector glare can make it hard to scan, so zoom the terminal in.
 
 **On the projector:**
 - Never show `~/.aws/`, `aws configure list`, or any key. `aws sts get-caller-identity` shows your account ID; that isn't a secret, but blur it in recordings if you prefer.
