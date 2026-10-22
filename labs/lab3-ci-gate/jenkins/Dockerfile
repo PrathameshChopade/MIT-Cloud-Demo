@@ -3,8 +3,15 @@
 FROM jenkins/jenkins:lts-jdk17
 
 USER root
-# IPv4 for package downloads (see toolbox/Dockerfile).
-RUN echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4 \
+# Patient pip on slow networks (see toolbox/Dockerfile).
+ENV PIP_DEFAULT_TIMEOUT=120 \
+    PIP_RETRIES=10 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+# Packages over HTTPS and IPv4 (see toolbox/Dockerfile).
+RUN for f in /etc/apt/sources.list /etc/apt/sources.list.d/*; do \
+      [ -f "$f" ] && sed -i 's|http://|https://|g' "$f"; \
+    done; \
+    echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4 \
  && apt-get update \
  && apt-get install -y --no-install-recommends python3 python3-venv \
  && rm -rf /var/lib/apt/lists/* \

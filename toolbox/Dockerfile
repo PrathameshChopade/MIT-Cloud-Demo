@@ -1,15 +1,18 @@
 # Toolbox for the "Securing the path to the cloud" session.
 # Every scanner used in Labs 1-3, so participants install nothing else.
-FROM debian:bookworm-slim
+# Python's official Debian image: Python and the CA certificates needed for
+# HTTPS package downloads are already in it.
+FROM python:3.12.7-slim-bookworm
 
 ARG GITLEAKS_VERSION=8.21.2
 ARG TARGETARCH
 
-# Use IPv4 for package downloads: on networks without IPv6 routing, apt
-# otherwise keeps trying unreachable IPv6 mirrors and the build stalls.
-RUN echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4 \
+# Download packages over HTTPS and IPv4: some networks block plain HTTP
+# (Debian's default) or don't route IPv6, and the build would stall.
+RUN sed -i 's|http://|https://|g' /etc/apt/sources.list.d/debian.sources \
+ && echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4 \
  && apt-get update \
- && apt-get install -y --no-install-recommends ca-certificates curl git less nano python3 python3-venv tree \
+ && apt-get install -y --no-install-recommends curl git less nano tree \
  && rm -rf /var/lib/apt/lists/*
 
 # Download the release and check it against the published checksums before
@@ -29,6 +32,12 @@ RUN set -eu; \
     grep " ${gl_file}\$" "gitleaks_${GITLEAKS_VERSION}_checksums.txt" | sha256sum -c -; \
     tar -xzf "$gl_file" -C /usr/local/bin gitleaks; \
     rm -rf /tmp/*
+
+# Be patient with slow networks: Checkov pulls in hundreds of packages, and
+# pip's defaults give up after a single 15-second stall.
+ENV PIP_DEFAULT_TIMEOUT=120 \
+    PIP_RETRIES=10 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
 
 # Bandit and Checkov in separate virtualenvs so their dependencies can't clash.
 RUN python3 -m venv /opt/venv \
