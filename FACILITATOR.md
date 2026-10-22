@@ -177,7 +177,7 @@ docker compose --profile jenkins up -d --build jenkins
 
 - **Tool options:** `gitleaks git --pre-commit --staged`, `gitleaks dir`, and `checkov --config-file`. Confirm the start files fail and the solution files pass in Labs 1–3.
 - **The Checkov must-fix list:** run it against `labs/lab3-ci-gate/start` (should fail), `labs/lab3-ci-gate/solution` (should pass) and `labs/lab4-into-the-cloud/terraform` (should pass). If a check ID in `scripts/checkov-baseline.yaml` doesn't behave as expected, change or remove it, then rebuild the toolbox.
-- **Pinned versions:** gitleaks `8.21.2`, SonarQube `26.9.0`, scanner `12.2.0`. If a download fails, check the project's releases page. (Trivy, used in an earlier version of this kit, had to be re-pinned because old releases were removed from GitHub after the March 2026 supply-chain incident. That's a good story about why pinning and checksums matter.)
+- **Pinned versions:** Checkov image `3.3.26` (the toolbox is built on it), gitleaks `8.21.2`, SonarQube `26.9.0`, scanner `12.2.0`. If a download fails, check the project's releases page. (Trivy, used in an earlier version of this kit, had to be re-pinned because old releases were removed from GitHub after the March 2026 supply-chain incident. That's a good story about why pinning and checksums matter.)
 - **The Jenkins image** uses the current LTS. If the Checkov install fails there because of the Python version, pin an older LTS tag in `labs/lab3-ci-gate/jenkins/Dockerfile`.
 
 ## Setup email for participants
@@ -190,7 +190,7 @@ docker compose --profile jenkins up -d --build jenkins
 >
 > 1. Install Git and Docker Desktop (Rancher Desktop, or Docker Engine in WSL2, also work).
 > 2. Clone the lab repo: `git clone https://github.com/PrathameshChopade/MIT-Cloud-Demo.git`
-> 3. In the repo folder, run `docker compose build`. This downloads about 1.5 GB, so please do it on a good connection.
+> 3. In the repo folder, run `docker compose build`. This downloads about 400 MB, so please do it on a good connection.
 > 4. Run `verify.ps1` (Windows) or `verify.sh` (macOS/Linux/WSL) and check that it says READY.
 >
 > You don't need a cloud account. If anything fails, reply with the output and I'll help before the session. If your laptop can't run Docker, don't worry: you can pair with someone on the day.
@@ -245,7 +245,7 @@ First rotate or revoke the secret. Then use `git filter-repo` or BFG and force-p
 Every scanner has them. Suppress each one explicitly with a written reason (`# nosec B603 - fixed argument list`, `#checkov:skip=CKV_AWS_xx: reason`) and review suppressions like any other code change.
 
 **"SAST vs DAST vs SCA?"**
-- SAST reads the code (Bandit, SonarQube).
+- SAST reads the code (SonarQube; for Python also Bandit).
 - DAST attacks the running application.
 - SCA checks your dependencies for known vulnerabilities (for example Trivy, Dependabot, pip-audit).
 

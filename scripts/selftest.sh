@@ -19,7 +19,6 @@ check() {
 echo "Toolbox self-test"
 check git      git --version
 check gitleaks gitleaks version
-check bandit   bandit --version
 check checkov  checkov --version
 
 if [ "$ok" -eq 1 ]; then
