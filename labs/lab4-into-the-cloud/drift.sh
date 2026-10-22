@@ -40,10 +40,12 @@ fi
 
 echo "Change 1: opening SSH (port 22) to the whole internet on $sg"
 run_aws ec2 authorize-security-group-ingress --region "$region" \
-  --group-id "$sg" --protocol tcp --port 22 --cidr 0.0.0.0/0 > /dev/null
+  --group-id "$sg" --protocol tcp --port 22 --cidr 0.0.0.0/0 > /dev/null 2>&1 \
+  || echo "  (already open from an earlier run)"
 
 echo "Change 2: removing Block Public Access from bucket $bucket"
-run_aws s3api delete-public-access-block --region "$region" --bucket "$bucket"
+run_aws s3api delete-public-access-block --region "$region" --bucket "$bucket" 2> /dev/null \
+  || echo "  (already removed from an earlier run)"
 
 echo "Change 3: making every file in $bucket readable by anyone"
 policy=$(printf '{"Version":"2012-10-17","Statement":[{"Sid":"PublicRead","Effect":"Allow","Principal":"*","Action":"s3:GetObject","Resource":"arn:aws:s3:::%s/*"}]}' "$bucket")
