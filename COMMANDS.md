@@ -92,7 +92,7 @@ git restore labs/lab1-secrets && git clean -fdq labs/lab1-secrets
 docker compose --profile sonarqube up -d sonarqube
 docker compose --profile sonarqube logs -f sonarqube   # wait for "SonarQube is operational", then Ctrl+C
 # Browser: http://localhost:9000, log in as admin/admin and set a password,
-# create a Global Analysis Token, and create the "Workshop" quality gate (FACILITATOR.md)
+# and create a Global Analysis Token (avatar > My Account > Security)
 export SONAR_TOKEN=<your token>
 docker compose --profile sonarqube run --rm -e SONAR_TOKEN sonar-scanner \
   -Dsonar.projectKey=lab2-start "-Dsonar.projectName=Lab 2 - Insecure code (start)" -Dsonar.sources=start

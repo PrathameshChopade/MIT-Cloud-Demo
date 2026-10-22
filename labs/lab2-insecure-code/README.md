@@ -1,6 +1,6 @@
 # Lab 2 — Insecure code, found by SonarQube (20 min)
 
-**Goal:** see how a code-scanning platform, SonarQube, finds security bugs in ordinary-looking code, explains them, and blocks the code with a pass/fail **quality gate**.
+**Goal:** see how a code-scanning platform, SonarQube, finds security bugs in ordinary-looking code and explains each one: what it is, where it is, and how to fix it.
 
 **The scenario:** an internal Python service builds, archives and shares customer reports. It works, it passed code review, and it contains about twenty security bugs.
 
@@ -46,18 +46,7 @@ Open http://localhost:9000.
    export SONAR_TOKEN=<your token>
    ```
 
-## 3. Create a quality gate that checks all the code
-
-SonarQube's default gate ("Sonar way") only checks *new* code, so a project's first scan always passes, however bad the code is. Create one that checks everything:
-
-1. **Quality Gates** (top menu) → **Create** → name it `Workshop`.
-2. Add these conditions, choosing **On Overall Code** each time:
-   - **Security Rating** is worse than **A**
-   - **Reliability Rating** is worse than **A**
-   - **Security Hotspots Reviewed** is less than **100%**
-3. Click **Set as Default**.
-
-## 4. Scan the insecure code
+## 3. Scan the insecure code
 
 ```bash
 docker compose --profile sonarqube run --rm -e SONAR_TOKEN sonar-scanner \
@@ -65,19 +54,18 @@ docker compose --profile sonarqube run --rm -e SONAR_TOKEN sonar-scanner \
 # expect: EXECUTION SUCCESS
 ```
 
-The scanner reads the code and sends its findings to the server. Refresh http://localhost:9000: the project **Lab 2 - Insecure code (start)** shows **Failed**.
+The scanner reads the code and sends its findings to the server. Refresh http://localhost:9000: the project **Lab 2 - Insecure code (start)** appears.
 
-## 5. Read the results
+## 4. Read the results
 
-Open the project and look at three things:
+Open the project and look at two things:
 
-1. **Quality gate: Failed.** The verdict a pipeline uses to block a merge. It lists the conditions that failed.
-2. **Issues** → filter by **Security**. These are confirmed vulnerabilities. Click one, such as the disabled certificate check or the unverified token: SonarQube highlights the exact line and explains the risk and how to fix it.
-3. **Security Hotspots.** Code that *may* be dangerous, where only a person knows the context: `eval`, `shell=True`, MD5, the SQL query, `random`. Each one has a **Review** status waiting for a decision.
+1. **Issues** → filter by **Security**. These are confirmed vulnerabilities. Click one, such as the disabled certificate check or the unverified token: SonarQube highlights the exact line and explains the risk and how to fix it.
+2. **Security Hotspots.** Code that *may* be dangerous, where only a person knows the context: `eval`, `shell=True`, MD5, the SQL query, `random`. Each one has a **Review** status waiting for a decision.
 
 **Issue or hotspot?** An issue is a confirmed problem. A hotspot is risky code that needs a human decision, so SonarQube asks instead of guessing.
 
-## 6. Scan the fixed code and review it
+## 5. Scan the fixed code and review it
 
 ```bash
 docker compose --profile sonarqube run --rm -e SONAR_TOKEN sonar-scanner \
@@ -85,10 +73,9 @@ docker compose --profile sonarqube run --rm -e SONAR_TOKEN sonar-scanner \
 # expect: EXECUTION SUCCESS
 ```
 
-Open **Lab 2 - Fixed code (solution)**:
+Open **Lab 2 - Fixed code (solution)** and compare it with the insecure project:
 - **No security issues:** every vulnerability is gone.
-- **A few hotspots remain,** for example the `subprocess` call. Open each one, read the code, and set its status to **Safe** with a one-line reason, such as "fixed argument list, no shell".
-- Refresh the project: the gate turns **Passed**. If it doesn't update, rerun the scan.
+- **A few hotspots remain,** for example the `subprocess` call. Open each one, read the code, and set its status to **Safe** with a one-line reason, such as "fixed argument list, no shell". Every hotspot is now reviewed, and the decision is recorded.
 
 The fixed code also carries `# nosec` comments with written reasons. That's the same idea for command-line scanners: every exception is documented, so a reviewer can check it.
 
@@ -96,7 +83,7 @@ The fixed code also carries `# nosec` comments with written reasons. That's the 
 
 To see every fix line by line, compare the two files in VS Code: right-click `start/report_service.py` → **Select for Compare**, then right-click `solution/report_service.py` → **Compare with Selected**.
 
-## 7. Clean up
+## 6. Clean up
 
 ```bash
 docker compose --profile sonarqube stop sonarqube       # stop it, keep the projects
@@ -108,4 +95,4 @@ The lab files themselves are never changed, so there's nothing to reset.
 ## Takeaways
 - Code review alone misses these bugs, because the code looks normal. A scanner checks every line, every time.
 - Issues are confirmed problems; hotspots need a human decision, and recording that decision is part of the process.
-- Teams run SonarQube on every pull request, and the quality gate can block a merge.
+- Teams run SonarQube on every pull request, so problems are found before the code is merged.
