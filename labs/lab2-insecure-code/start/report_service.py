@@ -21,6 +21,9 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from flask import Flask
 
+# RISK: no CSRF protection, so a malicious web page can make a logged-in
+# user's browser send requests to this service without them knowing.
+# FIX: turn on Flask-WTF's CSRFProtect, with a secret key from the environment.
 app = Flask(__name__)
 
 # RISK: the password is written in the code, so anyone who can

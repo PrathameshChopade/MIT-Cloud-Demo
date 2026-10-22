@@ -24,6 +24,7 @@
 | Weak cryptography | MD5, AES in ECB mode, 1024-bit RSA | PBKDF2, AES-GCM, 3072-bit RSA |
 | Guessable tokens | `random.randint(...)` | `secrets.token_urlsafe()` |
 | Secrets and access | Hard-coded password, unverified JWT, Flask debug on `0.0.0.0` | Environment variables, verified tokens, debug off |
+| Forged requests (CSRF) | Flask app with no CSRF protection | Flask-WTF `CSRFProtect` |
 
 ## 1. Start SonarQube
 

@@ -17,8 +17,13 @@ import yaml
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from flask import Flask
+from flask_wtf.csrf import CSRFProtect
 
 app = Flask(__name__)
+# CSRF tokens are signed with this key; it comes from the environment, never the code.
+app.config["SECRET_KEY"] = os.environ["FLASK_SECRET_KEY"]
+# Every form or POST request must carry a valid CSRF token.
+csrf = CSRFProtect(app)
 
 # From the environment (or a secrets manager), never from the code.
 ADMIN_PASSWORD = os.environ["ADMIN_PASSWORD"]
