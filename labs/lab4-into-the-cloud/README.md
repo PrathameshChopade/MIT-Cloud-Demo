@@ -24,6 +24,7 @@ Ubuntu terminal:
 ```bash
 aws sts get-caller-identity       # who am I? (account and role; never show keys)
 export AWS_PROFILE=terraform      # once per terminal (profile setup: FACILITATOR.md, Lab 4)
+                                  # sign-in expired? aws login --profile default
 terraform init
 terraform plan                    # 8 resources to add: read them out
 terraform apply                   # type "yes"

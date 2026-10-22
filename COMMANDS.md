@@ -125,7 +125,7 @@ docker compose run --rm toolbox bash labs/lab3-ci-gate/apply-fixes.sh labs/lab3-
 
 Once per machine: sign in, and add a `terraform` profile that reuses your `aws login` session (Terraform can't read that session directly):
 ```bash
-aws login
+aws login --profile default        # always sign in to "default", even if AWS_PROFILE=terraform is set
 grep -qs '^\[profile terraform\]' ~/.aws/config || cat >> ~/.aws/config <<'EOF'
 
 [profile terraform]

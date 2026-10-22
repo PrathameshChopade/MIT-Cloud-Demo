@@ -10,7 +10,7 @@ export AWS_PAGER=""
 stop_if_timed_out() {
   if [ "$1" -eq 124 ]; then
     echo "  No answer within 30 seconds. Your AWS sign-in has probably expired:" >&2
-    echo "  run 'aws login', then: eval \"\$(aws configure export-credentials --format env)\"" >&2
+    echo "  run 'aws login --profile default', then: export AWS_PROFILE=terraform" >&2
     exit 2
   fi
 }

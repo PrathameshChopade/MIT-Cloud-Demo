@@ -18,7 +18,7 @@ run_aws() {
   timeout 30 aws "$@" || rc=$?
   if [ "$rc" -eq 124 ]; then
     echo "No answer from AWS within 30 seconds. Your sign-in has probably expired:" >&2
-    echo "run 'aws login', then: eval \"\$(aws configure export-credentials --format env)\"" >&2
+    echo "run 'aws login --profile default', then: export AWS_PROFILE=terraform" >&2
     exit 2
   fi
   return "$rc"

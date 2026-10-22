@@ -132,7 +132,7 @@ docker compose --profile jenkins up -d --build jenkins
    region = ap-south-1
    EOF
    ```
-   Then, **in every terminal you use for the demo, run `export AWS_PROFILE=terraform` once.** Terraform, the AWS CLI, `check.sh` and `drift.sh` then all use your current sign-in, with fresh credentials on every command. If anything says the credentials expired, run `aws login` again.
+   Then, **in every terminal you use for the demo, run `export AWS_PROFILE=terraform` once.** Terraform, the AWS CLI, `check.sh` and `drift.sh` then all use your current sign-in, with fresh credentials on every command. If anything says the credentials expired, run `aws login --profile default` (plain `aws login` fails while `AWS_PROFILE=terraform` is set).
 4. Set a safety net: **Billing → Budgets → Create budget**, a $5 monthly cost budget with an email alert.
 5. The region defaults to `ap-south-1` (Mumbai). To use another one, add `-var region=<region>` to every `terraform plan`, `apply` and `destroy`.
 6. Check the account-level **Block Public Access**. If it's fully on, the phone-leak step is blocked (which is exactly what that guardrail is for):
