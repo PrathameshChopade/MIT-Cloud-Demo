@@ -26,9 +26,10 @@ To compare the files in VS Code: right-click `start/main.tf` → **Select for Co
 
 ## 2. Scan the insecure version with Checkov
 
-Checkov reads Terraform files and reports problems without touching AWS. In the **toolbox**:
+Checkov reads Terraform files and reports problems without touching AWS. In the **toolbox**, starting from the repo folder (`/workspace`), because the paths are relative to it:
 
 ```bash
+cd /workspace
 checkov -d labs/lab3-ci-gate/start --config-file scripts/checkov-baseline.yaml
 # expect: FAILED checks for each problem in the table
 ```

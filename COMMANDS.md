@@ -105,6 +105,7 @@ On the day: `docker compose --profile sonarqube start sonarqube`, wait about 2 m
 
 **Everyone**, toolbox:
 ```bash
+cd /workspace                      # the repo folder: the paths below start here
 checkov -d labs/lab3-ci-gate/start --config-file scripts/checkov-baseline.yaml      # FAILED checks
 checkov -d labs/lab3-ci-gate/solution --config-file scripts/checkov-baseline.yaml   # no failures
 ```
