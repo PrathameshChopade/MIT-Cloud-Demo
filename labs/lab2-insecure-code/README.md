@@ -6,8 +6,10 @@
 
 **Real-world context:** in 2023, a single SQL injection bug in the MOVEit file-transfer product let attackers steal data from thousands of organisations.
 
-**Where:** the facilitator runs SonarQube on screen. To follow along on your own laptop, you need about 3 GB of free memory; run the commands from the repo folder in a host terminal (not the toolbox).
+**Where:** the facilitator runs SonarQube on screen. To follow along on your own laptop, you need about 3 GB of free memory.
 **In your editor:** `labs/lab2-insecure-code/start/report_service.py` (insecure) and `solution/report_service.py` (fixed).
+
+> **This lab does not use the toolbox.** Your toolbox terminal from Lab 1 can stay open for Lab 3, but run every command below in a **host terminal** (on Windows with WSL: an Ubuntu terminal), in the repo folder. The commands start Docker containers, and Docker isn't available inside the toolbox.
 
 ## The code
 
@@ -24,6 +26,8 @@
 | Secrets and access | Hard-coded password, unverified JWT, Flask debug on `0.0.0.0` | Environment variables, verified tokens, debug off |
 
 ## 1. Start SonarQube
+
+In a **host terminal**, in the repo folder (not the toolbox):
 
 ```bash
 docker compose --profile sonarqube up -d sonarqube
