@@ -129,14 +129,13 @@ eval "$(aws configure export-credentials --format env)"       # Terraform can't 
 terraform init && terraform plan && terraform apply           # type: yes
 
 bucket=$(terraform output -raw bucket_name); region=$(terraform output -raw region)
-url="https://$bucket.s3.$region.amazonaws.com/customers.csv"
-printf 'id,name,email,card_last4\n1,Asha Rao,asha@example.com,4242\n2,Ravi Iyer,ravi@example.com,1881\n' > customers.csv
-aws s3 cp customers.csv "s3://$bucket/"
+url="https://$bucket.s3.$region.amazonaws.com/customers.html"
+aws s3 cp ../customers.html "s3://$bucket/" --content-type text/html --cache-control no-store
 echo "Public link: $url"
 curl -s -o /dev/null -w "%{http_code}\n" "$url"          # 403: open the link in a browser, AccessDenied
-shared=$(aws s3 presign "s3://$bucket/customers.csv" --expires-in 120 --region "$region")
+shared=$(aws s3 presign "s3://$bucket/customers.html" --expires-in 120 --region "$region")
 echo "Presigned link (valid 2 minutes): $shared"
-curl -s "$shared"                                         # the file contents
+curl -s -o /dev/null -w "%{http_code}\n" "$shared"       # 200: open it in a browser, the page opens
 
 bash ../check.sh                   # PASS, PASS, PASS
 bash ../drift.sh                   # manual changes; prints the link and a QR code: participants scan it
@@ -147,7 +146,7 @@ terraform apply                    # puts it back
 bash ../check.sh                   # PASS, PASS, PASS
 curl -s -o /dev/null -w "%{http_code}\n" "$url"          # 403 again: participants refresh their phones
 
-terraform destroy && rm -f customers.csv
+terraform destroy
 ```
 
 ## Switching demos and cleaning up

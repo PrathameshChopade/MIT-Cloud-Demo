@@ -41,21 +41,22 @@ What now exists, and its cloud building block:
 
 ```bash
 bucket=$(terraform output -raw bucket_name); region=$(terraform output -raw region)
-url="https://$bucket.s3.$region.amazonaws.com/customers.csv"
-printf 'id,name,email,card_last4\n1,Asha Rao,asha@example.com,4242\n2,Ravi Iyer,ravi@example.com,1881\n' > customers.csv
-aws s3 cp customers.csv "s3://$bucket/"
+url="https://$bucket.s3.$region.amazonaws.com/customers.html"
+aws s3 cp ../customers.html "s3://$bucket/" --content-type text/html --cache-control no-store
 
 echo "Public link: $url"
 curl -s -o /dev/null -w "%{http_code}\n" "$url"
 # expect: 403. Open the link in a browser: AccessDenied
 
-shared=$(aws s3 presign "s3://$bucket/customers.csv" --expires-in 120 --region "$region")
+shared=$(aws s3 presign "s3://$bucket/customers.html" --expires-in 120 --region "$region")
 echo "Presigned link (valid 2 minutes): $shared"
-curl -s "$shared"
-# expect: the file contents. Open the link in a browser within 2 minutes: the file downloads
+curl -s -o /dev/null -w "%{http_code}\n" "$shared"
+# expect: 200. Open the link in a browser within 2 minutes: the "Customer export" page opens
 ```
 
-**On screen:** open both links in browser tabs side by side. The public one shows AccessDenied, and the presigned one downloads the file. Refresh the presigned one after two minutes: "Request has expired".
+The file is `customers.html`, a small page of fake customer records that opens in any browser, including phones.
+
+**On screen:** open both links in browser tabs side by side. The public one shows AccessDenied, and the presigned one opens the page. Refresh the presigned one after two minutes: "Request has expired".
 
 **Say:** sharing a file doesn't need a public bucket. A presigned link gives one person access to one file, for a short time. The data is fake.
 
@@ -111,7 +112,6 @@ Every mistake in today's labs, and all three changes in step 4, sit in the right
 
 ```bash
 terraform destroy                 # type "yes"; removes everything from step 1
-rm -f customers.csv
 ```
 
 ## Takeaways

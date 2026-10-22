@@ -54,7 +54,7 @@ if ! run_aws s3api put-bucket-policy --region "$region" --bucket "$bucket" --pol
   exit 1
 fi
 
-url="https://$bucket.s3.$region.amazonaws.com/customers.csv"
+url="https://$bucket.s3.$region.amazonaws.com/customers.html"
 echo
 echo "The file is now public. Anyone with this link can read it:"
 echo
