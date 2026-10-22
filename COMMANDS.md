@@ -125,14 +125,18 @@ docker compose run --rm toolbox bash labs/lab3-ci-gate/apply-fixes.sh labs/lab3-
 Host terminal, signed in to AWS (`aws login` or `aws configure sso`), in the repo folder:
 ```bash
 cd labs/lab4-into-the-cloud/terraform
+eval "$(aws configure export-credentials --format env)"       # Terraform can't read aws login sessions directly
 terraform init && terraform plan && terraform apply           # type: yes
 
 bucket=$(terraform output -raw bucket_name); region=$(terraform output -raw region)
 url="https://$bucket.s3.$region.amazonaws.com/customers.csv"
 printf 'id,name,email,card_last4\n1,Asha Rao,asha@example.com,4242\n2,Ravi Iyer,ravi@example.com,1881\n' > customers.csv
 aws s3 cp customers.csv "s3://$bucket/"
-curl -s -o /dev/null -w "%{http_code}\n" "$url"          # 403
-curl -s "$(aws s3 presign "s3://$bucket/customers.csv" --expires-in 120 --region "$region")"
+echo "Public link: $url"
+curl -s -o /dev/null -w "%{http_code}\n" "$url"          # 403: open the link in a browser, AccessDenied
+shared=$(aws s3 presign "s3://$bucket/customers.csv" --expires-in 120 --region "$region")
+echo "Presigned link (valid 2 minutes): $shared"
+curl -s "$shared"                                         # the file contents
 
 bash ../check.sh                   # PASS, PASS, PASS
 bash ../drift.sh                   # manual changes; prints the link and a QR code: participants scan it

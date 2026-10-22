@@ -23,6 +23,7 @@ checkov -d labs/lab4-into-the-cloud/terraform --config-file scripts/checkov-base
 Ubuntu terminal:
 ```bash
 aws sts get-caller-identity       # who am I? (account and role; never show keys)
+eval "$(aws configure export-credentials --format env)"   # hands the short-lived aws login credentials to Terraform
 terraform init
 terraform plan                    # 8 resources to add: read them out
 terraform apply                   # type "yes"
@@ -44,12 +45,17 @@ url="https://$bucket.s3.$region.amazonaws.com/customers.csv"
 printf 'id,name,email,card_last4\n1,Asha Rao,asha@example.com,4242\n2,Ravi Iyer,ravi@example.com,1881\n' > customers.csv
 aws s3 cp customers.csv "s3://$bucket/"
 
+echo "Public link: $url"
 curl -s -o /dev/null -w "%{http_code}\n" "$url"
-# expect: 403, the internet can't read it
+# expect: 403. Open the link in a browser: AccessDenied
 
-curl -s "$(aws s3 presign "s3://$bucket/customers.csv" --expires-in 120 --region "$region")"
-# expect: the file contents. This link stops working after 2 minutes.
+shared=$(aws s3 presign "s3://$bucket/customers.csv" --expires-in 120 --region "$region")
+echo "Presigned link (valid 2 minutes): $shared"
+curl -s "$shared"
+# expect: the file contents. Open the link in a browser within 2 minutes: the file downloads
 ```
+
+**On screen:** open both links in browser tabs side by side. The public one shows AccessDenied, and the presigned one downloads the file. Refresh the presigned one after two minutes: "Request has expired".
 
 **Say:** sharing a file doesn't need a public bucket. A presigned link gives one person access to one file, for a short time. The data is fake.
 
