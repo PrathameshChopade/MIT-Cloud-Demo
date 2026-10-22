@@ -9,21 +9,45 @@
 # fake data only. Run `terraform apply` straight after the demo to undo it.
 set -eu
 cd "$(dirname "$0")/terraform"
+export AWS_PAGER=""
 
-region=$(terraform output -raw region)
-bucket=$(terraform output -raw bucket_name)
-sg=$(terraform output -raw security_group_id)
+# Runs an AWS CLI command with a time limit, so an expired sign-in shows up as
+# a clear message instead of a hang.
+run_aws() {
+  local rc=0
+  timeout 30 aws "$@" || rc=$?
+  if [ "$rc" -eq 124 ]; then
+    echo "No answer from AWS within 30 seconds. Your sign-in has probably expired:" >&2
+    echo "run 'aws login', then: eval \"\$(aws configure export-credentials --format env)\"" >&2
+    exit 2
+  fi
+  return "$rc"
+}
+
+echo "Reading the deployed resources from Terraform..."
+# Read the outputs straight from the state file: one quick read instead of
+# three `terraform output` calls, which take about 15 seconds each on /mnt/c.
+outputs=$(python3 -c '
+import json
+out = json.load(open("terraform.tfstate"))["outputs"]
+print(out["region"]["value"], out["bucket_name"]["value"], out["security_group_id"]["value"])
+' 2> /dev/null) || outputs=""
+read -r region bucket sg <<< "$outputs"
+if [ -z "${sg:-}" ]; then
+  echo "Could not read the Terraform outputs. Run 'terraform apply' in labs/lab4-into-the-cloud/terraform first." >&2
+  exit 2
+fi
 
 echo "Change 1: opening SSH (port 22) to the whole internet on $sg"
-aws ec2 authorize-security-group-ingress --region "$region" \
+run_aws ec2 authorize-security-group-ingress --region "$region" \
   --group-id "$sg" --protocol tcp --port 22 --cidr 0.0.0.0/0 > /dev/null
 
 echo "Change 2: removing Block Public Access from bucket $bucket"
-aws s3api delete-public-access-block --region "$region" --bucket "$bucket"
+run_aws s3api delete-public-access-block --region "$region" --bucket "$bucket"
 
 echo "Change 3: making every file in $bucket readable by anyone"
 policy=$(printf '{"Version":"2012-10-17","Statement":[{"Sid":"PublicRead","Effect":"Allow","Principal":"*","Action":"s3:GetObject","Resource":"arn:aws:s3:::%s/*"}]}' "$bucket")
-if ! aws s3api put-bucket-policy --region "$region" --bucket "$bucket" --policy "$policy"; then
+if ! run_aws s3api put-bucket-policy --region "$region" --bucket "$bucket" --policy "$policy"; then
   echo >&2
   echo "AWS refused the public policy: account-level Block Public Access is probably on." >&2
   echo "That account guardrail just stopped the leak. See FACILITATOR.md (Lab 4) for options." >&2
