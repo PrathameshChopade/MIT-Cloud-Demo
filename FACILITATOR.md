@@ -121,7 +121,18 @@ docker compose --profile jenkins up -d --build jenkins
    unzip -q /tmp/awscliv2.zip -d /tmp && sudo /tmp/aws/install
    aws --version
    ```
-3. Sign in with **short-lived credentials**: `aws configure sso` if your account uses IAM Identity Center, or `aws login` to reuse your console sign-in. Avoid creating long-lived access keys; if you have to, use a dedicated IAM user for the demo and delete its keys afterwards. Sign in as an IAM admin user, not root: `get-caller-identity` on the projector shows which. In WSL, if the browser doesn't open, copy the printed link into your Windows browser, or use `aws login --remote`. Terraform can't read an `aws login` session directly, so in each new terminal run `eval "$(aws configure export-credentials --format env)"` before Terraform; rerun it if Terraform reports expired credentials.
+3. Sign in with **short-lived credentials**: `aws configure sso` if your account uses IAM Identity Center, or `aws login` to reuse your console sign-in. Avoid creating long-lived access keys; if you have to, use a dedicated IAM user for the demo and delete its keys afterwards. Sign in as an IAM admin user, not root: `get-caller-identity` on the projector shows which. In WSL, if the browser doesn't open, copy the printed link into your Windows browser, or use `aws login --remote`.
+
+   Terraform can't read an `aws login` session directly, so add a `terraform` profile once that reuses it:
+   ```bash
+   cat >> ~/.aws/config <<'EOF'
+
+   [profile terraform]
+   credential_process = aws configure export-credentials --profile default --format process
+   region = ap-south-1
+   EOF
+   ```
+   Then, **in every terminal you use for the demo, run `export AWS_PROFILE=terraform` once.** Terraform, the AWS CLI, `check.sh` and `drift.sh` then all use your current sign-in, with fresh credentials on every command. If anything says the credentials expired, run `aws login` again.
 4. Set a safety net: **Billing → Budgets → Create budget**, a $5 monthly cost budget with an email alert.
 5. The region defaults to `ap-south-1` (Mumbai). To use another one, add `-var region=<region>` to every `terraform plan`, `apply` and `destroy`.
 6. Check the account-level **Block Public Access**. If it's fully on, the phone-leak step is blocked (which is exactly what that guardrail is for):

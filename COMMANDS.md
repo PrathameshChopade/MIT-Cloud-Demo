@@ -122,10 +122,21 @@ docker compose run --rm toolbox bash labs/lab3-ci-gate/apply-fixes.sh labs/lab3-
 
 ## Lab 4 — Into the cloud (facilitator demo on AWS)
 
-Host terminal, signed in to AWS (`aws login` or `aws configure sso`), in the repo folder:
+Once per machine: sign in, and add a `terraform` profile that reuses your `aws login` session (Terraform can't read that session directly):
+```bash
+aws login
+cat >> ~/.aws/config <<'EOF'
+
+[profile terraform]
+credential_process = aws configure export-credentials --profile default --format process
+region = ap-south-1
+EOF
+```
+
+Host terminal, in the repo folder:
 ```bash
 cd labs/lab4-into-the-cloud/terraform
-eval "$(aws configure export-credentials --format env)"       # Terraform can't read aws login sessions directly
+export AWS_PROFILE=terraform                                  # once per terminal
 terraform init && terraform plan && terraform apply           # type: yes
 
 bucket=$(terraform output -raw bucket_name); region=$(terraform output -raw region)

@@ -23,7 +23,7 @@ checkov -d labs/lab4-into-the-cloud/terraform --config-file scripts/checkov-base
 Ubuntu terminal:
 ```bash
 aws sts get-caller-identity       # who am I? (account and role; never show keys)
-eval "$(aws configure export-credentials --format env)"   # hands the short-lived aws login credentials to Terraform
+export AWS_PROFILE=terraform      # once per terminal (profile setup: FACILITATOR.md, Lab 4)
 terraform init
 terraform plan                    # 8 resources to add: read them out
 terraform apply                   # type "yes"
