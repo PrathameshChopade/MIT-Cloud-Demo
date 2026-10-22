@@ -125,13 +125,14 @@ docker compose run --rm toolbox bash labs/lab3-ci-gate/apply-fixes.sh labs/lab3-
 Once per machine: sign in, and add a `terraform` profile that reuses your `aws login` session (Terraform can't read that session directly):
 ```bash
 aws login
-cat >> ~/.aws/config <<'EOF'
+grep -qs '^\[profile terraform\]' ~/.aws/config || cat >> ~/.aws/config <<'EOF'
 
 [profile terraform]
 credential_process = aws configure export-credentials --profile default --format process
 region = ap-south-1
 EOF
 ```
+Also install `qrencode` (draws the QR code): `sudo apt-get install -y qrencode` on Ubuntu, `brew install qrencode` on macOS.
 
 Host terminal, in the repo folder:
 ```bash
@@ -139,7 +140,7 @@ cd labs/lab4-into-the-cloud/terraform
 export AWS_PROFILE=terraform                                  # once per terminal
 terraform init && terraform plan && terraform apply           # type: yes
 
-bucket=$(terraform output -raw bucket_name); region=$(terraform output -raw region)
+bucket=$(terraform output -raw bucket_name); region=$(terraform output -raw region)   # takes a few seconds
 url="https://$bucket.s3.$region.amazonaws.com/customers.html"
 aws s3 cp ../customers.html "s3://$bucket/" --content-type text/html --cache-control no-store
 echo "Public link: $url"
@@ -150,7 +151,7 @@ curl -s -o /dev/null -w "%{http_code}\n" "$shared"       # 200: open it in a bro
 
 bash ../check.sh                   # PASS, PASS, PASS
 bash ../drift.sh                   # manual changes; prints the link and a QR code: participants scan it
-curl -s "$url"                     # the fake customer data, readable by anyone
+curl -s -o /dev/null -w "%{http_code}\n" "$url"          # 200: the fake customer page, readable by anyone
 bash ../check.sh                   # FAIL, FAIL, FAIL
 terraform plan                     # shows the drift
 terraform apply                    # puts it back

@@ -5,7 +5,10 @@ FROM debian:bookworm-slim
 ARG GITLEAKS_VERSION=8.21.2
 ARG TARGETARCH
 
-RUN apt-get update \
+# Use IPv4 for package downloads: on networks without IPv6 routing, apt
+# otherwise keeps trying unreachable IPv6 mirrors and the build stalls.
+RUN echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4 \
+ && apt-get update \
  && apt-get install -y --no-install-recommends ca-certificates curl git less nano python3 python3-venv tree \
  && rm -rf /var/lib/apt/lists/*
 

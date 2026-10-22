@@ -3,7 +3,9 @@
 FROM jenkins/jenkins:lts-jdk17
 
 USER root
-RUN apt-get update \
+# IPv4 for package downloads (see toolbox/Dockerfile).
+RUN echo 'Acquire::ForceIPv4 "true";' > /etc/apt/apt.conf.d/99force-ipv4 \
+ && apt-get update \
  && apt-get install -y --no-install-recommends python3 python3-venv \
  && rm -rf /var/lib/apt/lists/* \
  && python3 -m venv /opt/checkov \

@@ -125,7 +125,7 @@ docker compose --profile jenkins up -d --build jenkins
 
    Terraform can't read an `aws login` session directly, so add a `terraform` profile once that reuses it:
    ```bash
-   cat >> ~/.aws/config <<'EOF'
+   grep -qs '^\[profile terraform\]' ~/.aws/config || cat >> ~/.aws/config <<'EOF'
 
    [profile terraform]
    credential_process = aws configure export-credentials --profile default --format process

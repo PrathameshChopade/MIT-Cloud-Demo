@@ -40,7 +40,7 @@ What now exists, and its cloud building block:
 ## 2. Put "customer data" in it and check from the outside
 
 ```bash
-bucket=$(terraform output -raw bucket_name); region=$(terraform output -raw region)
+bucket=$(terraform output -raw bucket_name); region=$(terraform output -raw region)   # takes a few seconds
 url="https://$bucket.s3.$region.amazonaws.com/customers.html"
 aws s3 cp ../customers.html "s3://$bucket/" --content-type text/html --cache-control no-store
 
@@ -77,7 +77,7 @@ The script opens SSH to the world, removes the bucket's protection, and adds a p
 **Ask everyone to scan the QR code with their phone:** the "customer data" opens in their browser. It has leaked to the whole internet.
 
 ```bash
-curl -s "$url"                    # expect: the file contents, with no credentials at all
+curl -s -o /dev/null -w "%{http_code}\n" "$url"   # expect: 200, readable with no credentials at all
 bash ../check.sh                  # expect: FAIL, FAIL, FAIL
 ```
 
